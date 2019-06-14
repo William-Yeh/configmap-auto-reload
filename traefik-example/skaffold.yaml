@@ -1,0 +1,7 @@
+apiVersion: skaffold/v1beta11
+kind: Config
+deploy:
+  kubectl:
+    manifests:
+      - traefik-config.yml
+      - traefik-service.yml

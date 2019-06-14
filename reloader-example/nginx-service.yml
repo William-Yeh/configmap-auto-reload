@@ -1,0 +1,69 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30000
+  selector:
+    app: nginx
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+  annotations:
+    configmap.reloader.stakater.com/reload: "nginx-config"
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+
+  template:   # pod definition
+    metadata:
+      labels:
+        app: nginx
+    spec:
+
+      volumes:
+        - name: configmap-volume
+          configMap:
+            name: nginx-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: mime.types
+                path: mime.types
+              - key: conf.d__default.conf
+                path: conf.d/default.conf
+
+      containers:
+        - name: nginx
+          image: nginx:1.16.0-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+
+          volumeMounts:
+            - mountPath: /etc/nginx/
+              name: configmap-volume
+              readOnly: true
+
+      #dnsPolicy: ClusterFirst
+      #restartPolicy: Always

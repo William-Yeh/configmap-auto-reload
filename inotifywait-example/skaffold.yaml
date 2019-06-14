@@ -1,0 +1,13 @@
+apiVersion: skaffold/v1beta11
+kind: Config
+
+build:
+  artifacts:
+    - image: my-nginx
+      context: .
+
+deploy:
+  kubectl:
+    manifests:
+      - nginx-config.yml
+      - nginx-service.yml

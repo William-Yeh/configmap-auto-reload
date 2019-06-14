@@ -1,0 +1,9 @@
+apiVersion: skaffold/v1beta11
+kind: Config
+
+deploy:
+  kubectl:
+    manifests:
+      #- reloader.yaml
+      - nginx-config.yml
+      - nginx-service.yml

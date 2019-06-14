@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  labels:
+    app: traefik
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30000
+  selector:
+    app: traefik
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  labels:
+    app: traefik
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+
+  template:   # pod definition
+    metadata:
+      labels:
+        app: traefik
+    spec:
+
+      volumes:
+        - name: configmap-volume
+          configMap:
+            name: traefik-config
+
+      containers:
+        - name: traefik
+          image: traefik:1.7.12-alpine
+          #image: traefik:1.7.12
+          imagePullPolicy: IfNotPresent
+          args: ["--debug"]
+          ports:
+            - containerPort: 80
+
+          volumeMounts:
+            - mountPath: /etc/traefik
+              name: configmap-volume
+              readOnly: true
+
+      #dnsPolicy: ClusterFirst
+      #restartPolicy: Always
